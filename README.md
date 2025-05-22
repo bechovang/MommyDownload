@@ -1,211 +1,216 @@
-# MommyDownload - Modern & User-Centric YouTube to MP3 Converter ✨
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-<!-- Add other relevant badges: CI/CD status, code coverage, etc. -->
-<!-- [![Build Status](https://img.shields.io/...)](...) -->
-
-**🚀 Live Demo: [Link to Your Deployed Application]** (Essential - Deploy it!)
-
-MommyDownload is a **full-stack web application** meticulously crafted to provide a seamless and intuitive experience for downloading audio from YouTube videos as MP3 files. This project showcases the implementation of modern web technologies, robust backend architecture, and a strong focus on user experience and performance.
-
-**Tagline:** _Effortless YouTube audio downloads, built with cutting-edge tech._
-
-## Table of Contents
-
-- [🌟 Key Features & Highlights](#-key-features--highlights)
-- [🛠️ Technology Stack](#️-technology-stack)
-- [🏛️ System Architecture](#️-system-architecture)
-- [⚙️ Getting Started](#️-getting-started)
-- [📡 Backend API Design](#-backend-api-design)
-- [🗄️ Database Design](#️-database-design)
-- [🧪 Comprehensive Testing Strategy](#-comprehensive-testing-strategy)
-- [☁️ Deployment](#️-deployment)
-- [💡 Future Enhancements](#-future-enhancements)
-- [📄 License](#-license)
-- [📫 Contact](#-contact)
-
-## 🌟 Key Features & Highlights
-
-*   **Modern Frontend Experience:** Built with **Next.js 14+ (App Router)** and **React**, leveraging Server Components and Client Components for optimal performance and developer experience. Styled with **Tailwind CSS** and accessible **shadcn/ui** components for a clean, responsive, and visually appealing UI.
-*   **Robust Backend Processing:** Powered by **Spring Boot 3+** and **Java 17+**, providing a scalable and maintainable RESTful API. Utilizes **FFmpeg** via a Java wrapper (`net.bramp.ffmpeg`) for efficient server-side audio extraction and MP3 conversion.
-*   **Performance Optimizations:**
-    *   **Backend Caching:** Implements **Spring Cache (Caffeine)** to cache YouTube video metadata, significantly reducing external API calls and improving response times.
-    *   **Backend Rate Limiting:** Protects the API from abuse using a Guava-based `RateLimiter`.
-    *   **Frontend Optimizations:** Leverages Next.js features like **Code Splitting**, **Lazy Loading** (for non-critical components), and the **`next/image`** component for optimized image delivery. React `useMemo` and `useCallback` are used for memoization.
-*   **User-Centric Design:**
-    *   Intuitive UI flow, specifically designed with simplicity in mind (catering well to less tech-savvy users).
-    *   **Instant Video Preview:** Fetches and displays video thumbnail, title, author, and duration before conversion.
-    *   **Elegant Light/Dark Mode:** Seamless theme switching powered by `next-themes` and Tailwind CSS, enhancing visual comfort and accessibility, with preference persisted in Local Storage.
-    *   **Recent Downloads History:** Utilizes **Local Storage** via a custom hook (`useLocalStorage`) to keep track of recently converted items for quick re-access.
-    *   **Clear Feedback:** Provides distinct loading states (with specific messages like "Fetching info...", "Converting...") and user-friendly error messages.
-*   **Intelligent File Management:** The backend includes a **scheduled task (`@Scheduled`)** to automatically clean up expired MP3 files from temporary storage based on a configurable expiration time (`expires_at` in the database).
-*   **Thoughtful Database Design:** Employs **PostgreSQL** with a well-structured schema:
-    *   Uses **UUIDs** as primary keys for decentralized ID generation.
-    *   Utilizes `TIMESTAMP WITH TIME ZONE` for accurate time tracking across different regions.
-    *   Implements `CHECK` constraints for data integrity (`status` field).
-    *   Includes necessary **database indexes** (`video_id`, `expires_at`, `status`) for efficient querying, especially for cleanup tasks and duplicate checks.
-*   **Full-Stack TypeScript & Java:** Demonstrates proficiency in both strongly-typed frontend (TypeScript) and backend (Java) development.
-*   **Containerized & Deployment-Ready:** Backend and Database are containerized using **Docker** and orchestrated with **Docker Compose** for consistent environments and simplified deployment. Frontend is optimized for deployment on platforms like **Vercel**.
-*   **Comprehensive Testing:** Employs a multi-layered testing strategy (Unit, Integration, E2E) using **Jest, React Testing Library, MSW, JUnit, Mockito, and Cypress** to ensure code quality and application stability.
-*   **Accessibility (A11y) Conscious:** Adheres to accessibility best practices using semantic HTML, ARIA attributes, and keyboard navigation support.
-
-## 🛠️ Technology Stack
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Next.js-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js"/> 
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React"/> 
-  <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white" alt="TypeScript"/> 
-  <img src="https://img.shields.io/badge/Tailwind_CSS-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white" alt="Tailwind CSS"/> 
-  <img src="https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot"/> 
-  <img src="https://img.shields.io/badge/Java-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 17+"/> 
-  <img src="https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL"/> 
-  <img src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker"/> 
-  <img src="https://img.shields.io/badge/FFmpeg-007800?style=for-the-badge&logo=ffmpeg&logoColor=white" alt="FFmpeg"/> 
-  <img src="https://img.shields.io/badge/Jest-C21325?style=for-the-badge&logo=jest&logoColor=white" alt="Jest"/> 
-  <img src="https://img.shields.io/badge/Testing_Library-E33332?style=for-the-badge&logo=testing-library&logoColor=white" alt="Testing Library"/> 
-  <img src="https://img.shields.io/badge/Cypress-17202C?style=for-the-badge&logo=cypress&logoColor=69D3A7" alt="Cypress"/> 
-  <img src="https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white" alt="Vercel"/>
-</p>
-
-**Frontend:**
-
-*   Framework: Next.js 14+ (App Router)
-*   Language: TypeScript
-*   UI: React, shadcn/ui, Tailwind CSS
-*   State Management: React Hooks, Custom Hooks
-*   Data Fetching: Native Fetch API (Easily adaptable to SWR/React Query)
-*   Icons: Lucide React
-
-**Backend:**
-
-*   Framework: Spring Boot 3+ (Web, Data JPA, Validation, Cache)
-*   Language: Java 17+
-*   ORM: Hibernate (via Spring Data JPA)
-*   Build: Maven
-*   Video/Audio Processing: `java-video-downloader`, `net.bramp.ffmpeg`
-*   Caching: Spring Cache (Caffeine)
-
-**Database:**
-
-*   System: PostgreSQL 13+
-
-**DevOps & Deployment:**
-
-*   Containerization: Docker, Docker Compose
-*   Hosting: Vercel (Frontend), [Your Backend Hosting Choice, e.g., AWS, GCP, Azure, Render]
-
-**Testing:**
-
-*   Unit/Integration: Jest, React Testing Library, MSW, JUnit 5, Mockito
-*   E2E: Cypress
-
-## 🏛️ System Architecture
-
-MommyDownload follows a standard **Client-Server architecture**:
-
-1.  **Frontend (Client - Next.js):** Responsible for the user interface, client-side interactions, state management, and communicating with the backend via REST API calls. Built using a component-based structure with custom hooks for reusable logic.
-2.  **Backend (Server - Spring Boot):** Provides the RESTful API endpoints, handles core business logic (YouTube interaction, FFmpeg conversion, file storage), manages database interactions, and ensures security and performance (caching, rate limiting). Adheres to a layered architecture:
-    *   **Controller:** Handles HTTP requests, performs input validation, delegates to services.
-    *   **Service:** Encapsulates business logic, orchestrates tasks, manages transactions.
-    *   **Repository:** Abstracts data access using Spring Data JPA.
-    *   **Model/Entity:** Represents database tables.
-    *   **DTOs:** Facilitates data transfer between layers and API boundaries.
-3.  **Database (PostgreSQL):** Persists application state, primarily storing metadata about converted MP3 files.
-
-*(Optional: Insert a simple architecture diagram image here)*
-`[Simple Architecture Diagram]`
-
-## ⚙️ Getting Started
-
-**Prerequisites:**
-
-*   Node.js (v18+) & npm/yarn
-*   Java JDK (v17+) & Maven
-*   Docker & Docker Compose
-*   FFmpeg (must be installed on the machine running the backend, or within the Docker environment if customized)
-
-**Steps:**
-
-1.  **Clone the Repository:**
-    ```bash
-    git clone [https://your-repo-url.git]
-    cd mommy-download
-    ```
-
-2.  **Run Backend & Database (Docker Compose):**
-    *   Navigate to the backend directory (or root, where `docker-compose.yml` is).
-    *   Configure necessary environment variables if needed (e.g., in `.env` file used by docker-compose or directly in `docker-compose.yml`).
-    *   Execute:
-        ```bash
-        docker-compose up -d
-        ```
-        This starts PostgreSQL and the Spring Boot backend (available at `http://localhost:8080` by default).
-
-3.  **Run Frontend:**
-    *   Navigate to the frontend directory.
-    *   Install dependencies: `npm install` or `yarn install`.
-    *   Create a `.env.local` file if needed to configure `NEXT_PUBLIC_API_URL` (defaults usually point to `http://localhost:8080/api` for local backend).
-    *   Start the development server: `npm run dev` or `yarn dev`.
-        The frontend will be available at `http://localhost:3000`.
-
-4.  **Access:** Open `http://localhost:3000` in your browser.
-
-## 📡 Backend API Design
-
-The backend exposes the following core RESTful endpoints:
-
-*   `GET /api/video/info?url={youtubeUrl}`: Fetches video metadata (title, author, duration, thumbnail). Utilizes caching. Returns `VideoInfoDTO`.
-*   `POST /api/convert`: Accepts `{ "url": "youtubeUrl", "quality": "..." }`. Orchestrates audio download and MP3 conversion. Persists file metadata to the database. Returns `ConvertResponseDTO` with `fileId`.
-*   `GET /api/download/{fileId}`: Streams the converted MP3 file for download based on its `fileId`. Optionally increments the download counter.
-
-## 🗄️ Database Design
-
-*   **Primary Table: `files`**: Stores comprehensive metadata for each conversion.
-    *   Uses `id` (UUID) as the primary key.
-    *   Tracks `video_id`, `title`, `author`, `file_path` (the unique `fileId`), `file_size`, `duration`, `thumbnail_url`.
-    *   Employs `TIMESTAMP WITH TIME ZONE` for `created_at` and crucial `expires_at` columns for lifecycle management.
-    *   Includes a `status` column (`PENDING`, `PROCESSING`, `COMPLETED`, `FAILED`) with a `CHECK` constraint.
-    *   Indexed on `video_id`, `expires_at`, and `status` for query performance.
-*   **Optional Table: `downloads`**: Logs individual download events (linking to `files` via foreign key, storing IP, user agent, timestamp).
-
-## 🧪 Comprehensive Testing Strategy
-
-Quality is ensured through multiple testing layers:
-
-*   **Unit Tests:**
-    *   Frontend: Jest & React Testing Library for individual components and custom hooks.
-    *   Backend: JUnit 5 & Mockito for service and utility classes.
-*   **Integration Tests:**
-    *   Frontend: Jest, RTL, and MSW (Mock Service Worker) to test component interactions and mocked API calls.
-    *   Backend: Spring Boot Test (`@SpringBootTest`), potentially with H2 (in-memory DB) or Testcontainers, to test interactions between layers (Service-Repository-DB).
-*   **End-to-End (E2E) Tests:**
-    *   Cypress simulates real user scenarios across the entire application stack (FE interacting with mock or live BE).
-
-## ☁️ Deployment
-
-*   **Frontend:** Optimized for **Vercel**, enabling seamless CI/CD from a Git repository.
-*   **Backend & Database:** Containerized via **Docker** and **Docker Compose**, making it portable and deployable to various platforms supporting containers (e.g., AWS EC2/ECS, Google Cloud Run/GKE, Azure App Service, Heroku Docker, Render).
-
-## 💡 Future Enhancements
-
-*   **Asynchronous Processing:** Implement a message queue (RabbitMQ/Kafka) for handling conversions asynchronously, improving API responsiveness and fault tolerance.
-*   **User Authentication:** Integrate Spring Security for user accounts and potentially premium features.
-*   **Cloud Storage:** Store generated MP3 files in cloud object storage (AWS S3, Google Cloud Storage) instead of local server storage for better scalability and reliability.
-*   **Monitoring & Observability:** Integrate Spring Boot Actuator, Prometheus, and Grafana for application health monitoring and performance insights.
-*   **Internationalization (i18n):** Add multi-language support to the frontend.
-*   **Format/Quality Selection:** Allow users to choose MP3 bitrate or potentially other audio formats (AAC, OGG).
-
-## 📄 License
-
-This project is licensed under the MIT License - see the `LICENSE` file for details.
-
-## 📫 Contact
-
-*   **Author:** [Your Name]
-*   **Email:** [Your Email Address]
-*   **GitHub:** [Your GitHub Profile URL]
-*   **LinkedIn:** [Your LinkedIn Profile URL (Optional)]
+Dưới đây là một **kế hoạch chi tiết (planning)** để phát triển một **ứng dụng web** với **frontend Next.js** và **backend API Python (Flask + yt-dlp)** để tải video YouTube. Kế hoạch này bao gồm các bước cụ thể, thời gian ước tính, và các lưu ý để đảm bảo dự án được triển khai hiệu quả.
 
 ---
 
-Thank you for checking out MommyDownload! Feel free to reach out with any questions or feedback.
+### **Kế hoạch phát triển ứng dụng tải video YouTube**
+
+#### **1. Phân tích yêu cầu (1-2 giờ)**
+- **Mục tiêu**: Xác định rõ các tính năng cần thiết và yêu cầu kỹ thuật.
+- **Tính năng chính**:
+  - **Frontend (Next.js)**: Giao diện người dùng để nhập URL YouTube, hiển thị thông tin video (tiêu đề, thumbnail, danh sách định dạng), và nút tải video.
+  - **Backend (Flask)**: API nhận URL từ frontend, sử dụng `yt-dlp` để tải video và trả về file hoặc link tải.
+  - **Tùy chọn nâng cao**: Hỗ trợ chọn chất lượng video, tải playlist, hoặc trích xuất audio (MP3).
+- **Yêu cầu kỹ thuật**:
+  - Backend: Python 3.8+, Flask, `yt-dlp`, `flask-cors` (xử lý CORS cho frontend).
+  - Frontend: Next.js (React), hỗ trợ gọi API qua `fetch` hoặc `axios`.
+  - Lưu trữ tạm thời: Thư mục `downloads` để lưu video trước khi gửi về client.
+  - Bảo mật: Xử lý CORS, kiểm tra URL đầu vào, và đảm bảo tuân thủ pháp lý.
+- **Lưu ý pháp lý**: Chỉ cho phép tải video hợp pháp (video bạn sở hữu hoặc có nút tải chính thức từ YouTube).
+
+---
+
+#### **2. Thiết kế hệ thống (2-3 giờ)**
+- **Kiến trúc hệ thống**:
+  - **Frontend (Next.js)**: Giao diện React với các component:
+    - Input để nhập URL YouTube.
+    - Button để lấy thông tin video (`/api/video-info`) và tải video (`/api/download`).
+    - Hiển thị metadata (tiêu đề, thời lượng, thumbnail, danh sách định dạng).
+  - **Backend (Flask)**:
+    - Endpoint `/api/video-info`: Nhận URL, trả về metadata video (JSON).
+    - Endpoint `/api/download`: Nhận URL, tải video bằng `yt-dlp`, trả về file video.
+    - Xử lý CORS để frontend (chạy trên `localhost:3000`) gọi API (chạy trên `localhost:5000`).
+  - **Lưu trữ**: Thư mục `downloads` trên server để lưu file video tạm thời.
+- **Luồng dữ liệu**:
+  1. Người dùng nhập URL YouTube trên frontend.
+  2. Frontend gửi POST request tới `/api/video-info` để lấy thông tin video.
+  3. Backend sử dụng `yt-dlp` để trích xuất metadata và trả về JSON.
+  4. Người dùng nhấn "Tải video", frontend gửi POST request tới `/api/download`.
+  5. Backend tải video bằng `yt-dlp` và gửi file về frontend.
+  6. Frontend kích hoạt tải file về máy người dùng.
+- **Công cụ phát triển**:
+  - Backend: Python, Flask, `yt-dlp`, `flask-cors`.
+  - Frontend: Next.js, `fetch` hoặc `axios` để gọi API.
+  - IDE: VS Code hoặc PyCharm.
+  - Quản lý source code: Git/GitHub.
+
+---
+
+#### **3. Thiết lập môi trường phát triển (2-4 giờ)**
+- **Backend**:
+  - Cài Python 3.8+.
+  - Tạo virtual environment:
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Linux/Mac
+    venv\Scripts\activate  # Windows
+    ```
+  - Cài thư viện:
+    ```bash
+    pip install flask yt-dlp flask-cors
+    ```
+  - Tạo thư mục dự án và file `app.py`.
+- **Frontend**:
+  - Tạo dự án Next.js (nếu chưa có):
+    ```bash
+    npx create-next-app@latest your-nextjs-project
+    cd your-nextjs-project
+    npm install
+    ```
+  - Cài thêm `axios` (tùy chọn) để gọi API:
+    ```bash
+    npm install axios
+    ```
+- **Git**: Khởi tạo repository trên GitHub và thiết lập `.gitignore` để bỏ qua thư mục `venv` và `downloads`.
+
+---
+
+#### **4. Phát triển backend (6-8 giờ)**
+- **Mục tiêu**: Xây dựng API Flask với các endpoint `/api/video-info` và `/api/download`.
+- **Chi tiết công việc**:
+  - Viết code Flask (xem ví dụ trong phản hồi trước):
+    - Endpoint `/api/video-info`: Trích xuất metadata (tiêu đề, thumbnail, danh sách định dạng) bằng `yt-dlp` mà không tải video.
+    - Endpoint `/api/download`: Tải video bằng `yt-dlp` và trả về file.
+  - Xử lý lỗi (URL không hợp lệ, lỗi tải video) và trả về mã HTTP phù hợp (200, 400, 500).
+  - Cấu hình CORS để cho phép frontend Next.js gọi API.
+  - Tạo thư mục `downloads` để lưu file video tạm thời.
+- **Thời gian**:
+  - Viết code cơ bản: 3-4 giờ.
+  - Kiểm tra và xử lý lỗi: 2-3 giờ.
+  - Tối ưu (thêm tính năng như chọn chất lượng): 1-2 giờ (tùy chọn).
+
+---
+
+#### **5. Phát triển frontend (6-8 giờ)**
+- **Mục tiêu**: Xây dựng giao diện Next.js để gọi API và hiển thị kết quả.
+- **Chi tiết công việc**:
+  - Tạo component chính (ví dụ: `Home.js`):
+    - Input để nhập URL YouTube.
+    - Button để gọi `/api/video-info` và `/api/download`.
+    - Hiển thị metadata (tiêu đề, thumbnail, danh sách định dạng).
+  - Sử dụng `fetch` hoặc `axios` để gửi POST request tới API.
+  - Xử lý response:
+    - Hiển thị metadata từ `/api/video-info`.
+    - Tải file từ `/api/download` bằng cách tạo link tải động (xem ví dụ frontend trong phản hồi trước).
+  - Thêm giao diện đơn giản bằng CSS hoặc thư viện như Tailwind CSS.
+- **Thời gian**:
+  - Xây dựng giao diện cơ bản: 2-3 giờ.
+  - Gọi API và xử lý response: 2-3 giờ.
+  - Tối ưu UI/UX: 1-2 giờ.
+
+---
+
+#### **6. Kiểm thử (4-6 giờ)**
+- **Mục tiêu**: Đảm bảo ứng dụng hoạt động ổn định và xử lý các trường hợp lỗi.
+- **Chi tiết công việc**:
+  - **Kiểm thử backend**:
+    - Test API bằng Postman hoặc `curl`:
+      ```bash
+      curl -X POST http://localhost:5000/api/video-info -H "Content-Type: application/json" -d '{"url": "https://www.youtube.com/watch?v=video_id"}'
+      ```
+    - Kiểm tra các trường hợp: URL hợp lệ, URL không hợp lệ, video giới hạn độ tuổi, video không tồn tại.
+  - **Kiểm thử frontend**:
+    - Nhập URL và kiểm tra hiển thị metadata.
+    - Kiểm tra tải video với các định dạng khác nhau.
+    - Kiểm tra giao diện trên các thiết bị (desktop, mobile).
+  - **Kiểm thử tích hợp**:
+    - Đảm bảo frontend gọi API thành công và tải file đúng cách.
+    - Kiểm tra CORS (frontend và backend chạy trên cổng khác nhau).
+  - **Thời gian**:
+    - Kiểm thử backend: 2-3 giờ.
+    - Kiểm thử frontend và tích hợp: 2-3 giờ.
+
+---
+
+#### **7. Triển khai (4-8 giờ)**
+- **Mục tiêu**: Đưa ứng dụng lên server để người dùng truy cập.
+- **Chi tiết công việc**:
+  - **Backend**:
+    - Sử dụng `gunicorn` và `nginx` để chạy Flask trên server:
+      ```bash
+      pip install gunicorn
+      gunicorn -w 4 -b 0.0.0.0:5000 app:app
+      ```
+    - Cấu hình `nginx` làm reverse proxy.
+    - Lưu ý: Cấu hình server để lưu trữ file video tạm thời và xóa định kỳ.
+  - **Frontend**:
+    - Build dự án Next.js:
+      ```bash
+      npm run build
+      npm start
+      ```
+    - Triển khai trên Vercel (dễ nhất cho Next.js) hoặc server riêng với `nginx`.
+  - **Domain và SSL**:
+    - Sử dụng Let’s Encrypt để thêm SSL cho cả frontend và backend.
+  - **Thời gian**:
+    - Cấu hình server backend: 2-4 giờ.
+    - Triển khai frontend: 1-2 giờ.
+    - Cấu hình SSL và kiểm tra: 1-2 giờ.
+
+---
+
+#### **8. Bảo trì và mở rộng (liên tục)**
+- **Mục tiêu**: Đảm bảo ứng dụng ổn định và thêm tính năng mới nếu cần.
+- **Chi tiết công việc**:
+  - **Bảo trì**:
+    - Cập nhật `yt-dlp` thường xuyên để xử lý các thay đổi từ YouTube:
+      ```bash
+      pip install --upgrade yt-dlp
+      ```
+    - Xóa file video tạm thời trong thư mục `downloads` để tiết kiệm dung lượng.
+  - **Mở rộng**:
+    - Thêm tính năng chọn chất lượng video hoặc tải audio (MP3).
+    - Hỗ trợ tải playlist hoặc nhiều video cùng lúc.
+    - Thêm xác thực (JWT, API key) để giới hạn người dùng.
+    - Tích hợp cơ sở dữ liệu (MongoDB, SQLite) để lưu lịch sử tải.
+  - **Thời gian**: Tùy thuộc vào tính năng mới (ước tính 4-10 giờ mỗi tính năng).
+
+---
+
+#### **Tổng thời gian ước tính**
+- Phân tích yêu cầu: 1-2 giờ
+- Thiết kế hệ thống: 2-3 giờ
+- Thiết lập môi trường: 2-4 giờ
+- Phát triển backend: 6-8 giờ
+- Phát triển frontend: 6-8 giờ
+- Kiểm thử: 4-6 giờ
+- Triển khai: 4-8 giờ
+- **Tổng**: ~25-39 giờ (cho dự án cơ bản, không tính mở rộng).
+
+---
+
+#### **Lưu ý quan trọng**
+- **Pháp lý**: Đảm bảo ứng dụng chỉ được dùng cho các video hợp pháp. Có thể thêm thông báo hoặc kiểm tra quyền tải video.
+- **Hiệu suất**: Nếu tải nhiều video cùng lúc, cân nhắc dùng **FastAPI** thay Flask để xử lý đồng thời tốt hơn.
+- **Bảo mật**:
+  - Kiểm tra URL đầu vào để tránh các request độc hại (dùng regex hoặc thư viện như `validators`).
+  - Thêm giới hạn request (rate limiting) để tránh lạm dụng API.
+- **Triển khai**:
+  - Sử dụng dịch vụ như Heroku, AWS, hoặc DigitalOcean cho backend.
+  - Vercel là lựa chọn tốt nhất cho frontend Next.js.
+- **Dự phòng lỗi**: YouTube thường thay đổi API, nên `yt-dlp` cần được cập nhật định kỳ.
+
+---
+
+#### **Lịch trình mẫu (1 tuần)**
+Giả sử bạn làm việc 4-6 giờ mỗi ngày:
+- **Ngày 1**: Phân tích yêu cầu, thiết kế hệ thống, thiết lập môi trường.
+- **Ngày 2**: Phát triển backend (API `/api/video-info` và `/api/download`).
+- **Ngày 3**: Phát triển frontend (giao diện và gọi API).
+- **Ngày 4**: Kiểm thử backend và frontend, sửa lỗi.
+- **Ngày 5**: Tích hợp frontend-backend, kiểm thử toàn hệ thống.
+- **Ngày 6**: Triển khai backend và frontend lên server.
+- **Ngày 7**: Cấu hình SSL, kiểm tra cuối, và viết tài liệu.
+
+---
+
+Nếu bạn cần thêm chi tiết về bất kỳ bước nào (ví dụ: code FastAPI thay Flask, cấu hình server, hoặc thêm tính năng cụ thể), hãy cho mình biết! Bạn muốn mình tập trung vào phần nào cụ thể hơn không?
