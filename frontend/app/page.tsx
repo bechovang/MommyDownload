@@ -200,8 +200,12 @@ export default function MommyDownload() {
         <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-lg">
           <CardHeader className="flex flex-row items-center justify-between text-center pb-2 border-b border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
             <div className="flex flex-col">
-              <CardTitle className="text-4xl font-bold text-blue-700 dark:text-blue-300">MommyDownload</CardTitle>
-              <p className="text-gray-700 dark:text-gray-300 mt-2 text-xl">Tải nhạc từ YouTube dễ dàng và nhanh chóng</p>
+              <div className="flex items-center space-x-3">
+                <Image src="/bechovang.webp" alt="MD Download Logo" width={60} height={60} className="rounded-full" />
+                <CardTitle className="text-4xl font-bold text-blue-700 dark:text-blue-300">MD Download</CardTitle>
+              </div>
+              <p className="text-gray-700 dark:text-gray-300 mt-2 text-xl ml-16 pl-1">Tải nhạc từ YouTube dễ dàng và nhanh chóng</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1 text-lg italic ml-16 pl-1">Ngọc Phúc làm cho mẹ để mẹ tải nhạc về nghe. </p>
             </div>
             <ThemeToggleButton />
           </CardHeader>
@@ -359,7 +363,7 @@ export default function MommyDownload() {
       </div>
 
       <footer className="mt-16 text-center text-base text-gray-600 dark:text-gray-400">
-        <p>© {new Date().getFullYear()} MommyDownload. Tất cả các quyền được bảo lưu.</p>
+        <p>© {new Date().getFullYear()} MD Download. Tất cả các quyền được bảo lưu.</p>
         <p className="mt-2">
           <ExternalLink className="inline h-4 w-4 mr-1" />
           Chỉ sử dụng cho mục đích cá nhân. Tôn trọng bản quyền của tác giả.
