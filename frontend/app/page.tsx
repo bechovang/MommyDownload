@@ -1,14 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useTheme } from "next-themes"
 import Image from "next/image"
-import { Download, Music, Clipboard, History, InfoIcon, Moon, Sun, ExternalLink, AlertCircle } from "lucide-react"
+import { Download, Music, Clipboard, History, InfoIcon, ExternalLink, AlertCircle } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { ThemeToggleButton } from "@/components/ThemeToggleButton"
 
 interface DownloadItem {
   url: string
@@ -31,18 +31,7 @@ export default function MommyDownload() {
     fileId: "",
   })
   const [recentDownloads, setRecentDownloads] = useState<DownloadItem[]>([])
-  const { theme, setTheme } = useTheme()
   const [loadingMessage, setLoadingMessage] = useState("Đang tải thông tin video...")
-
-  // Thêm useEffect để log theme khi nó thay đổi
-  useEffect(() => {
-    console.log("Current theme:", theme)
-  }, [theme])
-
-  // Thay đổi hàm xử lý nút chuyển đổi theme
-  const toggleTheme = () => {
-    setTheme(theme === "dark" ? "light" : "dark")
-  }
 
   useEffect(() => {
     // Load recent downloads from localStorage
@@ -136,9 +125,12 @@ export default function MommyDownload() {
     <div className="min-h-screen bg-blue-50 dark:bg-slate-900 py-10 px-4">
       <div className="max-w-3xl mx-auto space-y-8">
         <Card className="border-2 border-blue-200 dark:border-blue-800 shadow-lg">
-          <CardHeader className="text-center pb-2 border-b border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30">
-            <CardTitle className="text-4xl font-bold text-blue-700 dark:text-blue-300">MommyDownload</CardTitle>
-            <p className="text-gray-700 dark:text-gray-300 mt-2 text-xl">Tải nhạc từ YouTube dễ dàng và nhanh chóng</p>
+          <CardHeader className="flex flex-row items-center justify-between text-center pb-2 border-b border-blue-100 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/30 p-4">
+            <div className="flex flex-col">
+              <CardTitle className="text-4xl font-bold text-blue-700 dark:text-blue-300">MommyDownload</CardTitle>
+              <p className="text-gray-700 dark:text-gray-300 mt-2 text-xl">Tải nhạc từ YouTube dễ dàng và nhanh chóng</p>
+            </div>
+            <ThemeToggleButton />
           </CardHeader>
 
           <CardContent className="space-y-8 p-8">
@@ -289,19 +281,6 @@ export default function MommyDownload() {
             )}
           </CardContent>
         </Card>
-      </div>
-
-      {/* Thay đổi phần JSX của nút chuyển đổi theme */}
-      <div className="fixed bottom-8 right-8">
-        <Button
-          variant="outline"
-          size="icon"
-          className="rounded-full h-16 w-16 bg-white dark:bg-slate-800 shadow-lg border-2 border-blue-200 dark:border-blue-800"
-          onClick={toggleTheme}
-        >
-          {theme === "dark" ? <Sun className="h-8 w-8 text-yellow-500" /> : <Moon className="h-8 w-8 text-blue-700" />}
-          <span className="sr-only">Chuyển đổi chế độ sáng/tối</span>
-        </Button>
       </div>
 
       <footer className="mt-16 text-center text-base text-gray-600 dark:text-gray-400">
