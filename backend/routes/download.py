@@ -1,5 +1,6 @@
 from flask import Blueprint, request, send_file, jsonify
 import os
+import logging
 from utils.youtube_handler import download_video
 from config import Config
 
@@ -27,8 +28,9 @@ def download():
         }), 400
 
     try:
-        file_path = download_video(url, format_id or quality)
+        file_path = download_video(url)
         if not os.path.exists(file_path):
+            logging.error(f"Downloaded file not found at path: {file_path} for URL: {url}")
             return jsonify({
                 "success": False,
                 "error": ERROR_CODES['DOWNLOAD_FAILED'],
@@ -38,6 +40,7 @@ def download():
         return send_file(file_path, as_attachment=True)
 
     except Exception as e:
+        logging.error(f"Error during download for URL {url}: {str(e)}")
         return jsonify({
             "success": False,
             "error": ERROR_CODES['SERVER_ERROR'],
