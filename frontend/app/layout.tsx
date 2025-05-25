@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "MD Download",
-  description: "Tải nhạc từ YouTube dễ dàng và nhanh chóng cho mẹ yêu by Ngọc Phúc.",
+  description: "Tải nhạc từ YouTube dễ dàng và nhanh chóng cho mẹ by Ngọc Phúc.",
   icons: {
     icon: "/bechovang.webp",
     apple: "/bechovang.webp",
