@@ -1,5 +1,6 @@
 import yt_dlp
 import os
+import logging
 from datetime import timedelta
 from utils.file_manager import get_unique_filename, cleanup_old_files
 from config import Config
@@ -43,22 +44,47 @@ def validate_youtube_url(url):
 def download_video(url, format_id=None, output_dir=None):
     output_dir = output_dir or Config.DOWNLOAD_DIR
     ydl_opts = {
-        'format': format_id if format_id else 'best[height<=720]',
+        'format': 'bestaudio/best',
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
+        'postprocessors': [{
+            'key': 'FFmpegExtractAudio',
+            'preferredcodec': 'mp3',
+            'preferredquality': '192',
+        }],
         'noplaylist': True,
-        'quiet': True
+        'quiet': True,
+        'no_warnings': True,
     }
 
     try:
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            logging.info(f"yt-dlp options: {ydl_opts}")
             result = ydl.extract_info(url, download=True)
-            original_title = result.get('title')
-            ext = result.get('ext')
-            original_path = os.path.join(output_dir, f"{original_title}.{ext}")
-            unique_name = get_unique_filename(f"{original_title}.{ext}")
-            final_path = os.path.join(output_dir, unique_name)
+            final_file_info = result.get('requested_downloads', [{}])[0]
+            downloaded_file_path = final_file_info.get('filepath')
 
-            os.rename(original_path, final_path)
-            return final_path
+            if not downloaded_file_path or not os.path.exists(downloaded_file_path):
+                logging.warning(f"Filepath not found in yt-dlp result, attempting fallback construction for {result.get('title')}")
+                original_title = result.get('title', 'downloaded_audio')
+                expected_filename_after_pp = f"{original_title}.mp3"
+                downloaded_file_path = os.path.join(output_dir, expected_filename_after_pp)
+            
+            logging.info(f"Downloaded file path (intermediate): {downloaded_file_path}")
+
+            if os.path.exists(downloaded_file_path):
+                base_filename = os.path.basename(downloaded_file_path)
+                unique_filename_base = get_unique_filename(base_filename, output_dir)
+                final_path = os.path.join(output_dir, unique_filename_base)
+                
+                logging.info(f"Original downloaded path: {downloaded_file_path}, Unique final path: {final_path}")
+
+                if downloaded_file_path != final_path:
+                    os.rename(downloaded_file_path, final_path)
+                return final_path
+            else:
+                logging.error(f"CRITICAL: MP3 file not found at expected path after yt-dlp processing: {downloaded_file_path}")
+                raise RuntimeError(f"MP3 file not found after processing: {downloaded_file_path}")
+
     except Exception as e:
+        logging.error(f"yt-dlp/ffmpeg download_video exception for URL {url}: {str(e)}", exc_info=True)
         raise RuntimeError(f"Download failed: {str(e)}")

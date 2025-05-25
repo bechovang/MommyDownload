@@ -1,86 +1,164 @@
-# MommyDownload Project Documentation
+# MommyDownload - YouTube Audio Downloader
 
-## Overview
+MommyDownload is a web application designed to make downloading audio from YouTube videos simple and fast. Users can paste a YouTube URL, fetch video information, and download the audio track as an MP3 file.
 
-MommyDownload is a web application designed to download audio from YouTube videos. It consists of a Next.js frontend and a Python (Flask) backend. The application allows users to paste a YouTube URL, fetch video information, convert the video to MP3, and download the audio file.
+## Features
+
+*   **YouTube URL Processing:** Input any valid YouTube video URL.
+*   **Video Information Display:** Shows video title, author/uploader, duration, and thumbnail.
+*   **MP3 Conversion & Download:** Downloads the audio track and converts it to MP3 format using `yt-dlp` and `ffmpeg`.
+*   **Dark Mode:** User-friendly interface with a toggle for dark and light themes.
+*   **Recent Downloads History:** Keeps a list of recently processed videos in `localStorage` for quick re-downloads (frontend simulation, full backend history could be a future addition).
+*   **Responsive Design:** Built with Tailwind CSS for a good experience on various devices.
+
+## Tech Stack
+
+*   **Frontend:**
+    *   Next.js (React Framework)
+    *   TypeScript
+    *   Tailwind CSS (for styling)
+    *   shadcn/ui (UI components)
+    *   Lucide React (icons)
+    *   `next-themes` (for theming)
+*   **Backend:**
+    *   Python
+    *   Flask (web framework)
+    *   `yt-dlp` (for YouTube interaction)
+    *   `ffmpeg` (for audio conversion - must be installed separately on the server)
+    *   Flask-CORS (for Cross-Origin Resource Sharing)
 
 ## Project Structure
 
-The project is organized into two main directories:
+```
+.
+├── backend/        # Python Flask API
+│   ├── app.py      # Main Flask application
+│   ├── config.py   # Configuration settings
+│   ├── requirements.txt # Python dependencies
+│   ├── routes/     # API route blueprints (e.g., video_info.py, download.py)
+│   ├── utils/      # Utility modules (e.g., youtube_handler.py, file_manager.py)
+│   └── logs/       # Log files (ensure this is in .gitignore if not already)
+│   └── downloads/  # Default directory for downloaded files (ensure this is in .gitignore)
+├── frontend/       # Next.js Application
+│   ├── app/        # Next.js App Router (pages, layout, etc.)
+│   ├── components/ # React components (UI elements, ThemeToggleButton)
+│   ├── public/     # Static assets
+│   ├── lib/        # Utility functions for frontend
+│   ├── styles/     # Global styles
+│   ├── next.config.mjs
+│   ├── package.json
+│   └── tailwind.config.ts
+├── doc/            # Project documentation (like this README)
+├── README.md       # This file
+└── .gitignore      # Specifies intentionally untracked files that Git should ignore
+```
 
--   `frontend/`: Contains the Next.js application that provides the user interface.
--   `backend/`: Contains the Flask API that handles video information fetching and downloading using `yt-dlp`.
+## Setup and Installation
 
-Additionally, there is a root `README.md` that outlines the initial development plan and a `doc/` directory for further documentation.
+### Prerequisites
 
-## Frontend (`frontend/`)
+*   Node.js (v18 or newer recommended for Next.js)
+*   npm, pnpm, or yarn (package managers for Node.js)
+*   Python (v3.8 or newer recommended)
+*   `pip` (Python package installer)
+*   `ffmpeg`: **Must be installed globally on your system and accessible in the PATH.** `yt-dlp` relies on it for audio conversion.
 
-The frontend is built with Next.js and TypeScript. Key technologies and libraries include:
+### Backend Setup
 
--   **Next.js:** React framework for server-side rendering and static site generation.
--   **TypeScript:** Superset of JavaScript for type safety.
--   **Tailwind CSS:** Utility-first CSS framework for styling.
--   **shadcn/ui:** Collection of re-usable UI components.
--   **Lucide React:** Icon library.
--   **next-themes:** For light/dark mode theming.
-
-### Key Components and Files:
-
--   `app/page.tsx`: The main page component where users interact with the application.
--   `components/ui/`: Contains UI components from shadcn/ui.
--   `tailwind.config.ts`: Tailwind CSS configuration.
--   `next.config.mjs`: Next.js configuration.
--   `package.json`: Lists project dependencies and scripts.
-
-### Running the Frontend:
-
-1.  Navigate to the `frontend` directory: `cd frontend`
-2.  Install dependencies: `npm install` (or `pnpm install` / `yarn install`)
-3.  Run the development server: `npm run dev`
-    The application will typically be available at `http://localhost:3000`.
-
-## Backend (`backend/`)
-
-The backend is a Python Flask application. It uses `yt-dlp` to interact with YouTube.
-
-### Key Components and Files:
-
--   `app.py`: The main Flask application file, defining API endpoints.
--   `requirements.txt`: Lists Python dependencies.
--   Likely includes routes for:
-    -   Fetching video information (e.g., `/api/video-info`)
-    -   Downloading/converting video to audio (e.g., `/api/download`)
-
-### Running the Backend:
-
-1.  Navigate to the `backend` directory: `cd backend`
-2.  Create and activate a virtual environment (recommended):
+1.  **Navigate to the backend directory:**
+    ```bash
+    cd backend
+    ```
+2.  **Create and activate a Python virtual environment (recommended):**
     ```bash
     python -m venv venv
-    source venv/bin/activate  # For Linux/macOS
-    # venv\Scripts\activate    # For Windows
+    # On Windows
+    venv\Scripts\activate
+    # On macOS/Linux
+    source venv/bin/activate
     ```
-3.  Install dependencies: `pip install -r requirements.txt`
-4.  Run the Flask application: `python app.py` or `flask run`
-    The API will typically be available at `http://localhost:5000`.
+3.  **Install Python dependencies:**
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-## Getting Started (Development)
+### Frontend Setup
 
-1.  **Clone the repository.**
-2.  **Set up the Backend:**
-    -   Follow the steps in the "Running the Backend" section.
-3.  **Set up the Frontend:**
-    -   Follow the steps in the "Running the Frontend" section.
-4.  Ensure both frontend and backend servers are running.
-5.  Open your browser and navigate to the frontend URL (usually `http://localhost:3000`).
+1.  **Navigate to the frontend directory:**
+    ```bash
+    cd frontend
+    ```
+2.  **Install Node.js dependencies:**
+    ```bash
+    npm install
+    # or pnpm install / yarn install
+    ```
+3.  **(Optional) Environment Variables:**
+    Create a `.env.local` file in the `frontend` directory to specify the backend API URL if it's different from the default:
+    ```env
+    NEXT_PUBLIC_API_URL=http://localhost:5000
+    ```
 
-## Further Development and Maintenance
+## Running the Application
 
--   **Dark Mode:** The frontend already has a dark mode implementation using `next-themes` and Tailwind CSS `dark:` variants.
--   **Error Handling:** The frontend includes basic error display for invalid URLs or processing issues.
--   **Recent Downloads:** The application stores a list of recent downloads in `localStorage`.
--   **API Integration:** The frontend makes API calls to the backend for video processing. The existing code simulates these calls. For a full implementation, these simulated calls need to be replaced with actual `fetch` requests to the backend endpoints.
--   **`yt-dlp` Updates:** `yt-dlp` should be kept up-to-date in the backend to ensure compatibility with YouTube.
+1.  **Start the Backend Server:**
+    *   Ensure you are in the `backend` directory and your virtual environment is activated.
+    *   Run: `python app.py`
+    *   The backend API should now be running (typically at `http://localhost:5000`).
 
-This document provides a starting point for understanding and maintaining the MommyDownload project.
-Refer to the code and the original `README.md` in the root directory for more detailed planning information. 
+2.  **Start the Frontend Development Server:**
+    *   Ensure you are in the `frontend` directory.
+    *   Run: `npm run dev`
+    *   The frontend application should now be accessible in your browser (typically at `http://localhost:3000`).
+
+## API Endpoints (Backend)
+
+*   `GET /api/health`: Health check for the backend.
+*   `POST /api/video-info`: Accepts a YouTube URL and returns video metadata (title, duration, thumbnail, etc.).
+*   `POST /api/download`: Accepts a YouTube URL, downloads the audio, converts it to MP3, and sends the file for download.
+
+## Future Development Ideas
+
+Here are some potential features and improvements that could be added to MommyDownload:
+
+1.  **Download Queue System:**
+    *   Implement a robust queue (e.g., using Celery with Redis or RabbitMQ) to handle multiple download requests concurrently without overloading the server.
+    *   This would allow users to submit multiple URLs and have them processed in the background.
+
+2.  **Automatic Cleanup of `downloads/` Directory:**
+    *   While the `file_manager.py` has a `cleanup_old_files` function, integrate its execution more formally (e.g., a scheduled task or on startup) to periodically remove old files from the `downloads/` folder to save server space.
+
+3.  **Queue Priority (e.g., Smaller Files First):**
+    *   If a queue system is implemented, add priority levels. For instance, downloads estimated to be smaller (based on video duration or format info if available before full download) could be prioritized to improve perceived responsiveness for users.
+
+4.  **Real-time Queue Notifications & Progress:**
+    *   Use WebSockets (e.g., Flask-SocketIO) or Server-Sent Events (SSE) to provide real-time feedback to the user on the frontend about their download's position in the queue and its current progress (e.g., "Downloading...", "Converting to MP3...", "Ready!").
+
+5.  **Enhanced Format & Quality Selection:**
+    *   Allow users to select different audio formats (beyond just MP3) or quality settings if desired, passing these preferences to `yt-dlp`.
+
+6.  **Playlist Downloading:**
+    *   Support for downloading entire YouTube playlists as individual MP3 files.
+
+7.  **User Accounts & Download History:**
+    *   Implement user authentication to allow users to save their download history persistently on the server.
+
+8.  **Admin Dashboard:**
+    *   A simple dashboard to view server status, current queue length, recent errors, etc.
+
+9.  **Dockerization:**
+    *   Containerize both frontend and backend applications for easier deployment and scaling.
+
+10. **Improved Error Handling and Reporting:**
+    *   More granular error messages on the frontend based on specific backend error codes.
+
+11. **Rate Limiting:**
+    *   Implement rate limiting on API endpoints to prevent abuse.
+
+## Contributing
+
+(Details can be added here if the project becomes open to contributions.)
+
+## License
+
+(Specify a license if desired, e.g., MIT License.) 
