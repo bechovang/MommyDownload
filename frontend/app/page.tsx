@@ -18,18 +18,23 @@ interface DownloadItem {
   date: string
 }
 
+interface VideoInfoResponseData {
+  title: string;
+  author?: string; // Made author optional to match potential backend response structure
+  uploader?: string; // Added uploader as per backend
+  duration: number; // Duration is likely a number (seconds)
+  thumbnail: string;
+  // fileId is not part of the backend video-info response, so remove or adapt
+}
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+
 export default function MommyDownload() {
   const [youtubeUrl, setYoutubeUrl] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showResult, setShowResult] = useState(false)
-  const [videoInfo, setVideoInfo] = useState({
-    title: "Tên video",
-    author: "Không rõ",
-    duration: "00:00",
-    thumbnail: "/placeholder.svg?height=120&width=120",
-    fileId: "",
-  })
+  const [videoInfo, setVideoInfo] = useState<VideoInfoResponseData | null>(null) // Initialize as null, update type
   const [recentDownloads, setRecentDownloads] = useState<DownloadItem[]>([])
   const [loadingMessage, setLoadingMessage] = useState("Đang tải thông tin video...")
 
@@ -54,12 +59,19 @@ export default function MommyDownload() {
     return url.includes("youtube.com") || url.includes("youtu.be")
   }
 
+  const formatDuration = (seconds: number): string => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    if (h > 0) return `${h}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+    return `${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+  }
+
   const handleConvert = async () => {
     if (!youtubeUrl) {
       setError("Vui lòng nhập đường dẫn YouTube!")
       return
     }
-
     if (!isYouTubeUrl(youtubeUrl)) {
       setError("Đường dẫn không hợp lệ. Vui lòng nhập đường dẫn YouTube!")
       return
@@ -69,56 +81,117 @@ export default function MommyDownload() {
     setLoadingMessage("Đang tải thông tin video...")
     setError(null)
     setShowResult(false)
+    setVideoInfo(null) // Reset previous video info
 
     try {
-      // Simulate API call for video info
-      // In a real app, replace with actual API call
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await fetch(`${API_BASE_URL}/api/video-info`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: youtubeUrl }),
+      })
 
-      const mockVideoInfo = {
-        title: "Bài hát mẫu từ YouTube",
-        author: "Ca sĩ nổi tiếng",
-        duration: "03:45",
-        thumbnail: "/placeholder.svg?height=120&width=120",
-        fileId: "sample-file-id-123",
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Lỗi máy chủ: ${response.status}`)
       }
 
-      setVideoInfo(mockVideoInfo)
-      setLoadingMessage("Đang chuyển đổi video sang MP3...")
+      const result = await response.json()
+      
+      if (result.success && result.data) {
+        const fetchedInfo: VideoInfoResponseData = {
+            title: result.data.title || "Không có tiêu đề",
+            author: result.data.uploader || result.data.author || "Không rõ",
+            duration: result.data.duration || 0,
+            thumbnail: result.data.thumbnail || "/placeholder.svg?height=120&width=120",
+        };
+        setVideoInfo(fetchedInfo)
+        setShowResult(true)
 
-      // Simulate conversion API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+        // Add to recent downloads after successfully fetching info
+        const newDownload: DownloadItem = {
+          url: youtubeUrl,
+          title: fetchedInfo.title,
+          author: fetchedInfo.author || "Không rõ",
+          thumbnail: fetchedInfo.thumbnail,
+          date: new Date().toISOString(),
+        }
+        const updatedDownloads = [newDownload, ...recentDownloads].slice(0, 10)
+        setRecentDownloads(updatedDownloads)
+        localStorage.setItem("recentDownloads", JSON.stringify(updatedDownloads))
 
-      // Add to recent downloads
-      const newDownload = {
-        url: youtubeUrl,
-        title: mockVideoInfo.title,
-        author: mockVideoInfo.author,
-        thumbnail: mockVideoInfo.thumbnail,
-        date: new Date().toISOString(),
+      } else {
+        throw new Error(result.error || "Không thể lấy thông tin video.")
       }
 
-      const updatedDownloads = [newDownload, ...recentDownloads].slice(0, 10)
-      setRecentDownloads(updatedDownloads)
-      localStorage.setItem("recentDownloads", JSON.stringify(updatedDownloads))
-
-      setShowResult(true)
-    } catch (error) {
-      setError("Không thể xử lý video này. Vui lòng thử lại sau.")
+    } catch (error: any) {
+      setError(error.message || "Không thể xử lý video này. Vui lòng thử lại sau.")
+      setShowResult(false)
     } finally {
       setIsLoading(false)
     }
   }
 
-  const handleDownload = () => {
-    // In a real app, this would redirect to the download API
-    console.log(`Downloading file with ID: ${videoInfo.fileId}`)
-    // window.location.href = `/api/download/${videoInfo.fileId}`
-  }
+  const handleDownload = async () => {
+    if (!youtubeUrl || !videoInfo) { 
+        setError("Không có thông tin video để tải hoặc URL không hợp lệ.");
+        return;
+    }
+    setIsLoading(true);
+    setLoadingMessage("Đang chuẩn bị tải xuống...");
+    setError(null);
+
+    try {
+        const response = await fetch(`${API_BASE_URL}/api/download`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: youtubeUrl }), 
+        });
+
+        if (!response.ok) {
+            let errorMsg = `Lỗi tải xuống: ${response.status}`;
+            try {
+                // Attempt to parse JSON error response from backend
+                const errorData = await response.json();
+                errorMsg = errorData.error || errorData.message || `Lỗi ${response.status}`;
+            } catch (e) {
+                // If not JSON, use the status text if available
+                errorMsg = response.statusText || `Lỗi ${response.status}`;
+            }
+            throw new Error(errorMsg);
+        }
+
+        const blob = await response.blob();
+        const downloadUrl = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none'; // Ensure the anchor is not visible
+        a.href = downloadUrl;
+        
+        const fileName = `${videoInfo.title.replace(/[\/\\:*?"<>|]/g, '_') || 'download'}.mp3`;
+        a.download = fileName;
+        
+        document.body.appendChild(a);
+        a.click();
+        
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(downloadUrl);
+
+        // setLoadingMessage("Đã tải xuống thành công!"); // Optional: can be removed if isLoading=false is enough feedback
+
+    } catch (error: any) {
+        setError(error.message || "Không thể tải file. Vui lòng thử lại.");
+    } finally {
+        setIsLoading(false);
+    }
+};
 
   const handleDownloadAgain = (item: DownloadItem) => {
     setYoutubeUrl(item.url)
-    handleConvert()
+    // Directly call handleConvert, which will then show results and allow download
+    handleConvert() 
   }
 
   return (
@@ -161,10 +234,11 @@ export default function MommyDownload() {
 
             <Button
               onClick={handleConvert}
+              disabled={isLoading} // Disable button when loading
               className="w-full bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-700 dark:hover:bg-blue-600 transition-all py-8 text-xl"
             >
               <Music className="mr-3 h-6 w-6" />
-              Chuyển đổi sang MP3
+              {isLoading && loadingMessage.startsWith("Đang tải thông tin") ? loadingMessage : "Chuyển đổi sang MP3"}
             </Button>
 
             {isLoading && (
@@ -186,7 +260,7 @@ export default function MommyDownload() {
               </Alert>
             )}
 
-            {showResult && (
+            {showResult && videoInfo && (
               <div className="mt-6 p-6 rounded-lg bg-green-50 dark:bg-green-900/20 border-2 border-green-300 dark:border-green-800">
                 <div className="flex flex-col md:flex-row items-center md:space-x-6 space-y-4 md:space-y-0">
                   <div className="relative h-24 w-24 rounded-md overflow-hidden flex-shrink-0 border-2 border-gray-200 dark:border-gray-700">
@@ -200,16 +274,17 @@ export default function MommyDownload() {
                   <div className="flex-1 text-center md:text-left">
                     <h3 className="font-semibold text-xl text-gray-900 dark:text-gray-100">{videoInfo.title}</h3>
                     <p className="text-lg text-gray-700 dark:text-gray-300 mt-2">
-                      Tác giả: {videoInfo.author} | Thời lượng: {videoInfo.duration}
+                      Tác giả: {videoInfo.author} | Thời lượng: {formatDuration(videoInfo.duration)}
                     </p>
                   </div>
                 </div>
                 <Button
                   onClick={handleDownload}
+                  disabled={isLoading} // Disable button when loading
                   className="w-full mt-6 bg-green-600 hover:bg-green-700 text-white py-8 text-xl"
                 >
                   <Download className="mr-3 h-6 w-6" />
-                  Tải nhạc về máy
+                  {isLoading && loadingMessage.startsWith("Đang chuẩn bị") ? loadingMessage : "Tải nhạc về máy"}
                 </Button>
               </div>
             )}
@@ -230,7 +305,7 @@ export default function MommyDownload() {
               </li>
               <li>Dán đường dẫn vào ô trên (có thể dùng nút "Dán")</li>
               <li>Nhấn nút "Chuyển đổi sang MP3"</li>
-              <li>Đợi hệ thống xử lý</li>
+              <li>Đợi hệ thống xử lý thông tin video và nút tải xuất hiện</li>
               <li>Khi hiện nút "Tải nhạc về máy", nhấn vào đó để lưu file</li>
             </ol>
           </CardContent>
