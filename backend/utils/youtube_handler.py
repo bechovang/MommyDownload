@@ -44,13 +44,8 @@ def validate_youtube_url(url):
 def download_video(url, format_id=None, output_dir=None):
     output_dir = output_dir or Config.DOWNLOAD_DIR
     ydl_opts = {
-        'format': 'bestaudio/best',
+        'format': 'best',  # Download best quality
         'outtmpl': os.path.join(output_dir, '%(title)s.%(ext)s'),
-        'postprocessors': [{
-            'key': 'FFmpegExtractAudio',
-            'preferredcodec': 'mp3',
-            'preferredquality': '192',
-        }],
         'noplaylist': True,
         'quiet': True,
         'no_warnings': True,
@@ -65,11 +60,12 @@ def download_video(url, format_id=None, output_dir=None):
 
             if not downloaded_file_path or not os.path.exists(downloaded_file_path):
                 logging.warning(f"Filepath not found in yt-dlp result, attempting fallback construction for {result.get('title')}")
-                original_title = result.get('title', 'downloaded_audio')
-                expected_filename_after_pp = f"{original_title}.mp3"
-                downloaded_file_path = os.path.join(output_dir, expected_filename_after_pp)
+                original_title = result.get('title', 'downloaded_video')
+                original_ext = result.get('ext', 'mp4')
+                expected_filename = f"{original_title}.{original_ext}"
+                downloaded_file_path = os.path.join(output_dir, expected_filename)
             
-            logging.info(f"Downloaded file path (intermediate): {downloaded_file_path}")
+            logging.info(f"Downloaded file path: {downloaded_file_path}")
 
             if os.path.exists(downloaded_file_path):
                 base_filename = os.path.basename(downloaded_file_path)
@@ -82,9 +78,9 @@ def download_video(url, format_id=None, output_dir=None):
                     os.rename(downloaded_file_path, final_path)
                 return final_path
             else:
-                logging.error(f"CRITICAL: MP3 file not found at expected path after yt-dlp processing: {downloaded_file_path}")
-                raise RuntimeError(f"MP3 file not found after processing: {downloaded_file_path}")
+                logging.error(f"CRITICAL: Video file not found at expected path after yt-dlp processing: {downloaded_file_path}")
+                raise RuntimeError(f"Video file not found after processing: {downloaded_file_path}")
 
     except Exception as e:
-        logging.error(f"yt-dlp/ffmpeg download_video exception for URL {url}: {str(e)}", exc_info=True)
+        logging.error(f"yt-dlp download_video exception for URL {url}: {str(e)}", exc_info=True)
         raise RuntimeError(f"Download failed: {str(e)}")
